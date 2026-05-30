@@ -1,124 +1,105 @@
 # Thesis Reference Downloader 🚀
 
-**Ekstrak daftar referensi dari DOCX skripsi → cari DOI → download PDF dari 10+ sumber Open Access.**
+**Extract references from a DOCX thesis → find DOIs via CrossRef → download PDFs from 10+ Open Access sources with automatic fallback.**
 
-## Cara Pakai
+## Quick Start
 
 ```bash
-# 1. Install dependencies
+# 1. Install
 pip install requests lxml
 
-# 2. Download dari DOCX langsung
-python v6_multi_source.py "D:\path\ke\skripsi.docx" --output "D:/PDFs"
+# 2. Download from your thesis DOCX
+python v6_multi_source.py "skripsi.docx" --output "./PDFs"
 
-# 3. Atau download DOI spesifik
+# 3. Or download specific DOIs
 python v6_multi_source.py --doi 10.3390/metabo14080409 10.3389/fpls.2021.729161
 
-# 4. Atau dari file TXT berisi DOIs
+# 4. Or from a text file with one DOI per line
 python v6_multi_source.py --doi-file dofs.txt
 ```
 
-## ✨ Fitur
+## Features
 
-| Fitur | Status |
-|-------|--------|
-| ⚡ Parallel download (multi-thread) | ✅ |
-| 🌐 **10 sumber fallback otomatis** | ✅ |
-| 🔄 Auto retry | ✅ |
-| 🧠 Semantic Scholar API | ✅ |
+| Feature | Status |
+|---------|--------|
+| ⚡ Parallel multi-thread download | ✅ |
+| 🌐 **10 Open Access sources** with automatic fallback | ✅ |
+| 🔄 Auto-retry | ✅ |
+| 📄 Auto-extract DOIs from DOCX bibliography | ✅ |
+| 🏆 Semantic Scholar API (best hit rate) | ✅ |
 | 🏛️ Europe PMC → MDPI papers via PMCID | ✅ |
 | 🔗 CrossRef Full-Text | ✅ |
 | 🔓 Unpaywall OA finder | ✅ |
 | 📊 OpenAlex scholarly graph | ✅ |
 | 🌍 Google Cache | ✅ |
-| 📚 CORE aggregator + DOAJ | ✅ |
-| 🧪 Direct URL guessing | ✅ |
-| 📄 Auto-ekstrak DOI dari DOCX Daftar Pustaka | ✅ |
+| 📚 CORE + DOAJ aggregators | ✅ |
+| 🧪 Direct URL guessing by publisher pattern | ✅ |
+| 🏴‍☠️ Sci-Hub fallback | ✅ |
 
-## ⚙️ Sumber Download (urutan prioritas)
+## Source Pipeline
 
-1. **Semantic Scholar** — Best hit rate, OA PDF langsung
-2. **Europe PMC** — Banyak MDPI papers tersedia sebagai PMCID
-3. **CrossRef** — Link dari publisher langsung
-4. **Unpaywall** — Best OA location finder
-5. **OpenAlex** — Comprehensive scholarly graph API
-6. **Google Cache** — PDF versi cache
-7. **CORE API** — OA aggregator
-8. **DOAJ** — Directory of Open Access Journals
-9. **Direct URL** — Tebak URL berdasarkan publisher pattern
-10. **Sci-Hub** — Last resort
+Sources are tried **in order** for each DOI. The first one to return a valid PDF wins.
 
-## 📋 Publisher Support Matrix
+| # | Source | Best For | Limits |
+|---|--------|----------|--------|
+| 1 | **Semantic Scholar** | Open Access papers (Frontiers, Hindawi, misc) | No API key needed |
+| 2 | **Europe PMC** | **MDPI bypass!** Papers indexed in PubMed Central | NCBI rate-limits requests |
+| 3 | **CrossRef** | Publisher direct links | Many publishers block bots |
+| 4 | **Unpaywall** | Hidden OA papers | Requires email (any) |
+| 5 | **OpenAlex** | Comprehensive scholarly graph | None |
+| 6 | **Google Cache** | Cached PDFs | Hit-or-miss |
+| 7 | **CORE** | OA aggregator (200M+ papers) | None |
+| 8 | **DOAJ** | Directory of Open Access Journals | Limited coverage |
+| 9 | **Direct URL** | Known publisher URL patterns | Publisher-dependent |
+| 10 | **Sci-Hub** | Paywalled papers | Domains change frequently |
 
-| Publisher | DOI Prefix | Status |
-|-----------|-----------|--------|
-| MDPI | `10.3390/` | ⚠️ Akamai CDN → via PMC IDs
-| Frontiers | `10.3389/` | ✅ Guaranteed OA via S2
-| Springer/BMC | `10.1186/`, `10.1007/` | ✅ Mostly OA via Springer
-| Hindawi/Wiley | `10.1155/` | ❌ Blocked (migrated to Wiley)
-| Elsevier | `10.1016/` | ⚠️ Paywalled
-| Taylor & Francis | `10.1080/` | ⚠️ Paywalled
-| Preprints.org | `10.20944/` | ✅ Free
-| Wiley | `10.1002/` | ⚠️ Mostly paywalled
-| IntechOpen | `10.5772/` | ✅ OA langsung
+## Publisher Support
 
-## 📊 Hasil Download (Skripsi — Drynaria quercifolia)
+| Publisher | DOI Prefix | Direct Download | Notes |
+|-----------|-----------|----------------|-------|
+| **MDPI** | `10.3390/` | ⚠️ Via PMC ID | Akamai CDN blocks bots, but papers are in PubMed Central |
+| **Frontiers** | `10.3389/` | ✅ Semantic Scholar | Guaranteed Open Access |
+| **Springer / BMC** | `10.1186/`, `10.1007/` | ✅ Mostly via Direct URL | Most BMC papers are OA |
+| **Elsevier** | `10.1016/` | ❌ | Usually paywalled |
+| **Taylor & Francis** | `10.1080/` | ❌ | Usually paywalled |
+| **Wiley** | `10.1002/`, `10.1155/` | ❌ | Paywalled / blocked |
+| **IntechOpen** | `10.5772/` | ✅ | Open Access |
+| **Preprints.org** | `10.20944/` | ✅ | Free |
+| **SSRN** | `10.2139/` | ⚠️ | Sometimes blocked |
 
-| Status | Jumlah |
-|--------|--------|
-| ✅ Berhasil | **62 PDF** |
-| ❌ Gagal (blocked / paywalled) | 34 |
-| ⏭️ Jurnal Lokal (Google Scholar) | 17 |
-| ⏭️ Buku Teks (Google Books) | 5 |
-
-### MDPI Papers (15) — Tersedia di PubMed Central
-
-13 dari 15 MDPI papers punya PMCID dan bisa di-download manual dari NCBI:
+## Project Structure
 
 ```
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11356174/pdf/metabolites-14-00409.pdf
-https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10302943/pdf/metabo-13-00716.pdf
-... (lihat download_links.html untuk daftar lengkap)
-```
-
-Buka aja link di browser, gratis.
-
-## 📁 Struktur File
-
-```
-├── v6_multi_source.py          ← Main downloader (10 sources)
+├── v6_multi_source.py          ← Main downloader (10 sources, 1 script)
 ├── extract_and_download_v2.py  ← v2 (parallel Sci-Hub)
 ├── extract_and_download_v3.py  ← v3 (multi-layer fallback)
-├── retry_v4.py                 ← v4 (Semantic Scholar)
-├── retry_v5.py                 ← v5 (curl_cffi)
+├── retry_v4.py / v5.py         ← v4-v5 (Semantic Scholar + curl_cffi)
 ├── requirements.txt
 ├── README.md
-├── ROADMAP.md
-└── download_links.html         ← Klik untuk download manual
+└── ROADMAP.md
 ```
 
-## 📝 Requirements
+## Requirements
 
 - Python 3.8+
 - `pip install requests lxml`
-- (Opsional) `playwright` + `curl_cffi` untuk bypass lanjutan
+- (Optional) `playwright` + `undetected-chromedriver` for advanced bot bypass
 
-## ⚠️ Limitations
+## Limitations
 
-- **MDPI (Akamai CDN)**: Bots 403 → tapi semua gratis di mdpi.com
-- **Elsevier/Springer paywall**: Butuh akses institusi
-- **Jurnal lokal Indo**: Google Scholar
-- **Buku teks**: Google Books / perpustakaan
+- **MDPI (Akamai CDN)**: PDF URLs are blocked for bots — but all papers are free to download manually from mdpi.com
+- **Paywalled publishers** (Elsevier, Springer non-OA, T&F): Need institutional access
+- **Small/obscure journals**: May not be indexed in any of the 10 sources
+- **Books & local journals**: Try Google Scholar or Google Books
 
-## 🚀 Roadmap
+## Roadmap
 
-- [ ] **Automated PMC download** via Playwright/undetected-chromedriver
-- [ ] **OCR for scanned PDFs** (metadata extraction)
-- [ ] **GUI / Web interface**
-- [ ] **Zotero integration**
-- [ ] **Multi-language support** (title-based search)
+- [ ] Automated PMC download via undetected-chromedriver
+- [ ] GUI / web interface
+- [ ] Zotero / reference manager integration
+- [ ] Title-based search for papers without DOIs
+- [ ] Language-agnostic bibliography extraction
 
 ---
 
-> Dibuat untuk skripsi **"Bioprospeksi Drynaria quercifolia sebagai Antimikroba dan Antioksidan"**
-> Universitas Mulawarman
+MIT License. Contributions welcome!

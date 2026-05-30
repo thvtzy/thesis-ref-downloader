@@ -5,8 +5,8 @@ Extract Daftar Pustaka from DOCX skripsi → find DOIs via CrossRef → download
 from 10+ Open Access sources with automatic fallback.
 
 Usage:
-  python v6_multi_source.py "D:\\path\\ke\\skripsi.docx"
-  python v6_multi_source.py "D:\\path\\ke\\skripsi.docx" --output "D:/PDFs" --threads 5
+  python v6_multi_source.py "path/to/skripsi.docx"
+  python v6_multi_source.py "path/to/skripsi.docx" --output "./PDFs" --threads 5
 
 Sources (in order):
   1. Semantic Scholar API      — Best hit rate for OA papers
@@ -31,7 +31,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 
 # ─── CONFIG ───
-OUT_DIR = r"D:\Skripsi_Referensi_PDF"
+OUT_DIR = "./pdf_downloads"
 THREADS = 4
 TIMEOUT = 30
 
@@ -154,14 +154,12 @@ def source_openalex(doi):
         r = _s.get(f"https://api.openalex.org/works/doi:{doi}", timeout=15)
         if r.status_code == 200:
             data = r.json()
-            # Check best OA location
             for loc in data.get("locations", []):
                 pdf_url = loc.get("pdf_url", "")
                 if pdf_url:
                     r2 = _s.get(pdf_url, timeout=TIMEOUT, allow_redirects=True)
                     if b'%PDF' in r2.content[:200]:
                         return r2.content, "OpenAlex"
-            # Try primary location
             primary = data.get("primary_location", {})
             if primary.get("pdf_url"):
                 r2 = _s.get(primary["pdf_url"], timeout=TIMEOUT, allow_redirects=True)
@@ -218,28 +216,27 @@ def source_direct(doi):
     suffix = doi.split('/')[-1]
     urls = []
     
-    if '10.3389/' in doi:  # Frontiers
-        prefix = doi.split('.')[0].split('/')[1]
+    if '10.3389/' in doi:
         urls = [f"https://www.frontiersin.org/articles/{suffix}/pdf"]
-    elif '10.1186/' in doi:  # BMC
+    elif '10.1186/' in doi:
         urls = [f"https://link.springer.com/content/pdf/{doi}.pdf"]
     elif '10.1007/' in doi and '10.1007/978' not in doi:
         urls = [f"https://link.springer.com/content/pdf/{doi}.pdf"]
     elif '10.1007/978' in doi:
         urls = [f"https://link.springer.com/content/pdf/{doi}.pdf"]
-    elif '10.1016/' in doi:  # Elsevier
+    elif '10.1016/' in doi:
         urls = [f"https://doi.org/{doi}"]
-    elif '10.1080/' in doi:  # Taylor & Francis
+    elif '10.1080/' in doi:
         urls = [f"https://doi.org/{doi}"]
-    elif '10.20944/' in doi:  # Preprints
+    elif '10.20944/' in doi:
         urls = [f"https://www.preprints.org/manuscript/{suffix}/v1/download"]
-    elif '10.1002/' in doi:  # Wiley
+    elif '10.1002/' in doi:
         urls = [f"https://onlinelibrary.wiley.com/doi/pdf/{doi}"]
-    elif '10.2139/' in doi:  # SSRN
+    elif '10.2139/' in doi:
         urls = [f"https://papers.ssrn.com/sol3/papers.cfm?abstract_id={suffix}"]
-    elif '10.5772/' in doi:  # IntechOpen
+    elif '10.5772/' in doi:
         urls = [f"https://www.intechopen.com/chapters/{suffix}/pdf"]
-    elif '10.31219/' in doi:  # OSF
+    elif '10.31219/' in doi:
         urls = [f"https://osf.io/{suffix}/download"]
     elif '10.1155/' in doi:
         suf = doi.split('/', 1)[1]
@@ -261,8 +258,7 @@ def source_scihub(doi):
         try:
             r = _s.get(f"{domain}/{doi}", timeout=30, allow_redirects=True)
             if b'%PDF' in r.content[:200]:
-                return r.content, f"SciHub"
-            # Check for embedded PDF
+                return r.content, "SciHub"
             m = re.search(r'embed[^>]+src=["\']([^"\']+\.pdf[^"\']*)["\']', r.text)
             if m:
                 pdf_url = m.group(1)
@@ -294,9 +290,8 @@ def download_paper(doi):
         result = fn(doi)
         if result[0] is not None:
             if isinstance(result[0], bytes):
-                return result  # Actual PDF data
+                return result
             elif isinstance(result[0], str):
-                # It's a URL — download it
                 try:
                     r = _s.get(result[0], timeout=TIMEOUT, allow_redirects=True)
                     if r.status_code == 200 and b'%PDF' in r.content[:200]:
