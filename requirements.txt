@@ -1,11 +1,13 @@
-# Dependencies
-python-docx
-lxml
-requests
+# Core dependencies
+requests>=2.31.0
+lxml>=4.9.0
 
 # Usage
-# 1. pip install requests lxml
-# 2. python extract_and_download.py "path/to/skripsi.docx"
-#
-# Or add your DOCX path directly in the script:
-#   docx_path = r"D:\path\to\skripsi.docx"
+#   pip install -r requirements.txt
+#   python v6_multi_source.py "path/to/skripsi.docx"
+
+# Optional (for advanced bypass):
+# playwright
+# curl_cffi
+# cloudscraper
+# undetected-chromedriver

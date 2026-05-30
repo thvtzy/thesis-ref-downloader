@@ -5,3 +5,6 @@ __pycache__/
 .DS_Store
 download_log.txt
 failed.txt
+debug_*.png
+debug_*.html
+*.log
