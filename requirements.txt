@@ -1,0 +1,11 @@
+# Dependencies
+python-docx
+lxml
+requests
+
+# Usage
+# 1. pip install requests lxml
+# 2. python extract_and_download.py "path/to/skripsi.docx"
+#
+# Or add your DOCX path directly in the script:
+#   docx_path = r"D:\path\to\skripsi.docx"

@@ -1,0 +1,7 @@
+*.pyc
+__pycache__/
+*.pdf
+!example.pdf
+.DS_Store
+download_log.txt
+failed.txt
